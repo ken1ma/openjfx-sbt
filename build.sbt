@@ -28,6 +28,18 @@ lazy val root = (project in file("."))
 			"org.openjfx" % "javafx-base" % "11.0.1" classifier osType.value,
 		),
 
+		// scala-2.12.8: invoke javac directly since scalac does not yet support module syntax
+		// without --module-path, "error: module not found: javafx.controls" occurs on "requires javafx.controls"
+		Compile / unmanagedSourceDirectories -= (Compile / javaSource).value,
+		Compile / compile := {
+			val analysis = (Compile / compile).value
+			val command = s"javac -d ${(Compile / classDirectory).value} --module-path $javafxLib ${((Compile / javaSource).value ** "*.java").get.mkString(" ")}"
+			println(s"executing: $command")
+			import scala.sys.process._
+			command.!
+			analysis
+		},
+
 		// JavaFX 11 jars are modules and cannot be embedded in the fat jar
 		// The fat jar is still built to embed the scala-library jar
 		assemblyExcludedJars in assembly := (fullClasspath in assembly).value.filter(_.data.getName.startsWith("javafx-")),

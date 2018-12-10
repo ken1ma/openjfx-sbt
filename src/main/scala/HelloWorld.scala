@@ -1,3 +1,5 @@
+package gui
+
 import scala.util.Properties
 import javafx.application.Application
 import javafx.scene.Scene
